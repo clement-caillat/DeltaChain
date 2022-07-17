@@ -23,6 +23,7 @@ def get_previous_hash():
         return last_blk.split("x")[1].split('.')[0]
 
 def verify():
+    block_not_valid = False
     blk_list = os.listdir("ledger")
     for blk in blk_list[::-1]:
         with open(f"ledger/{blk}", 'r') as b:
@@ -33,8 +34,53 @@ def verify():
             else:
                 pre_block_hash = "000066f223d9853a62c61dd2a92968194480483623342d12a762cd7612c0cc50" 
             
-            if prev_hash == pre_block_hash:
-                # Compare transaction raw hash with merkleroot 
+            if prev_hash == pre_block_hash: 
+                if verify_block_data(blk) == False:
+                    block_not_valid = True
+            else:
+                    block_not_valid = True
+
+            if block_not_valid == False:
                 print(f"{Fore.GREEN}Block {blk.split('.')[0]} is valid{Fore.RESET}")
             else:
                 print(f"{Fore.RED}Block {blk.split('.')[0]} is not valid{Fore.RESET}")
+
+
+
+def verify_block_data(blk):
+    with open(f"ledger/{blk}", 'r') as b:
+        block = json.load(b)
+
+        # Verifying transactions
+        block_transactions = block["transactions"]
+        transaction_block_raw = verify_transactions(block_transactions)
+        if  transaction_block_raw == False:
+            return False
+
+        # Verifying block transactions data
+        if transaction_block_raw[:-1] != block['transaction_block_raw']:
+            return False
+
+        # Verifying block data
+        block_raw = f"{block['block_order']}/{block['date']}/{block['transaction_block_raw']}/{block['previous_hash']}/{block['reward']}"
+
+        if block_raw != block['block_raw']:
+            return False
+            
+    return True
+
+def verify_transactions(transactions):
+    transaction_block_raw = ""
+    for transaction in transactions:
+        raw = f"{transaction['date']}.{transaction['sender']}.{transaction['public_key']}.{transaction['amount']}.{transaction['receiver']}"
+        raw_hash = hashlib.sha256(raw.encode())
+
+        if raw != transaction['transaction_raw']:
+            return False
+        
+        if raw_hash.hexdigest() != transaction['transaction_hash']:
+            return False
+
+        transaction_block_raw += transaction["transaction_raw"] + "."
+    
+    return transaction_block_raw

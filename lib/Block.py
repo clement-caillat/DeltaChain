@@ -10,7 +10,7 @@ class Block:
 
     def add_transaction(self, transaction):
         self.PENDING_TRANSACTIONS.append(transaction)
-        self.RAW_TRANSACTIONS += transaction["compressed"] + "."
+        self.RAW_TRANSACTIONS += transaction["transaction_raw"] + "."
 
         # print("Raw : " + self.RAW_TRANSACTIONS)
         # print(self.PENDING_TRANSACTIONS)
@@ -29,13 +29,13 @@ class Block:
         hash = lib.chaintool.mine(raw)
 
         data = {
-            'block_order': block_order + '0' * DIFFICULTY,
+            'block_order': block_order,
             'date': date,
             'transactions': transactions,
-            'compressed': raw_transactions,
+            'transaction_block_raw': raw_transactions,
             'merkleroot': merkleroot,
             'reward': reward,
-            'raw': raw,
+            'block_raw': raw,
             'previous_hash': previous_hash,
             'hash': hash
         }
