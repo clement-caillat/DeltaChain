@@ -41,9 +41,10 @@ def verify():
                     block_not_valid = True
 
             if block_not_valid == False:
-                print(f"{Fore.GREEN}Block {blk.split('.')[0]} is valid{Fore.RESET}")
+                # print(f"{Fore.GREEN}Block {blk.split('.')[0]} is valid{Fore.RESET}", end="\r")
+                pass
             else:
-                print(f"{Fore.RED}Block {blk.split('.')[0]} is not valid{Fore.RESET}")
+                print(f"{Fore.RED}Block {blk.split('.')[0]} is not valid{Fore.RESET}", end="\r")
 
 
 
@@ -84,3 +85,26 @@ def verify_transactions(transactions):
         transaction_block_raw += transaction["transaction_raw"] + "."
     
     return transaction_block_raw
+
+
+import threading
+
+def set_interval(func, sec):
+    def func_wrapper():
+        set_interval(func, sec)
+        func()
+    t = threading.Timer(sec, func_wrapper)
+    t.start()
+    return t
+
+
+def verify_transaction(transaction):
+    from ecdsa import VerifyingKey
+    public_key = VerifyingKey.from_string(bytes.fromhex(transaction["public_key"]))
+    signature = bytes.fromhex(transaction["signature"])
+
+    try:
+        public_key.verify(signature, transaction["transaction_raw"].encode())
+        return True
+    except:
+        return False

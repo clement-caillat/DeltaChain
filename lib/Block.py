@@ -12,35 +12,36 @@ class Block:
         self.PENDING_TRANSACTIONS.append(transaction)
         self.RAW_TRANSACTIONS += transaction["transaction_raw"] + "."
 
-        # print("Raw : " + self.RAW_TRANSACTIONS)
-        # print(self.PENDING_TRANSACTIONS)
-
     def sign_block(self):
-        from lib.Chain import DIFFICULTY
-        block_order = str(self.BLOCK_NUMBER) + 'x'
-        date = datetime.datetime.now().timestamp()
-        transactions = self.PENDING_TRANSACTIONS
-        raw_transactions = self.RAW_TRANSACTIONS[:-1]
-        merkleroot = hashlib.sha256(raw_transactions.encode()).hexdigest()
-        previous_hash = self.PREVIOUS_HASH
-        reward = 10
-        raw = f"{block_order}/{date}/{raw_transactions}/{previous_hash}/{reward}"
+        if len(self.PENDING_TRANSACTIONS) != 0:
+            if len(self.PENDING_TRANSACTIONS) == 1 and self.PENDING_TRANSACTIONS[0]['sender'] == "DELTACHAINREWARD":
+                pass
+            else:
+                from lib.Chain import DIFFICULTY
+                block_order = str(self.BLOCK_NUMBER) + 'x'
+                date = datetime.datetime.now().timestamp()
+                transactions = self.PENDING_TRANSACTIONS
+                raw_transactions = self.RAW_TRANSACTIONS[:-1]
+                merkleroot = hashlib.sha256(raw_transactions.encode()).hexdigest()
+                previous_hash = self.PREVIOUS_HASH
+                reward = 10
+                raw = f"{block_order}/{date}/{raw_transactions}/{previous_hash}/{reward}"
 
-        hash = lib.chaintool.mine(raw)
+                hash = lib.chaintool.mine(raw)
 
-        data = {
-            'block_order': block_order,
-            'date': date,
-            'transactions': transactions,
-            'transaction_block_raw': raw_transactions,
-            'merkleroot': merkleroot,
-            'reward': reward,
-            'block_raw': raw,
-            'previous_hash': previous_hash,
-            'hash': hash
-        }
+                data = {
+                    'block_order': block_order,
+                    'date': date,
+                    'transactions': transactions,
+                    'transaction_block_raw': raw_transactions,
+                    'merkleroot': merkleroot,
+                    'reward': reward,
+                    'block_raw': raw,
+                    'previous_hash': previous_hash,
+                    'hash': hash
+                }
 
-        block_id = block_order + hash
-        with open(f"ledger/{block_id}.blk", "w") as b:
-            json.dump(data, b)
-        return hash
+                block_id = block_order + hash
+                with open(f"ledger/{block_id}.blk", "w") as b:
+                    json.dump(data, b)
+                return hash
